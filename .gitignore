@@ -13,8 +13,8 @@ venv-py314-backup/
 .ipynb_checkpoints/
 
 # Datasets
-data/raw/
-data/processed/
+data/
+test-data/
 
 # Model weights
 *.pt
