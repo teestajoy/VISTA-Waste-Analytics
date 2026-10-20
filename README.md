@@ -51,11 +51,22 @@ Verify the active Python version:
 
 `python --version`
 
-Dependencies have not yet been finalized or installed as part of the initial setup.
+The `ultralytics` requirement is listed in `requirements.txt`. Set up its PyTorch dependencies in this order:
+
+1. Use the official PyTorch installation selector to choose and install a compatible PyTorch and torchvision build for this Windows machine, based on whether CPU or CUDA will be used.
+2. Record the selected PyTorch and torchvision versions in a pip constraints file, then install the remaining project dependencies from `requirements.txt` using that constraints file. Review the dependency resolution plan first, such as with pip's `--dry-run` option. The constraints should keep pip from silently replacing the selected build. If resolution proposes replacing or changing PyTorch or torchvision, stop and review the installation plan before proceeding.
+
+## YOLO Smoke Test
+
+After installing the project requirements and the selected PyTorch/torchvision build, run this command from the repository root with a local image path:
+
+`.\venv\Scripts\python.exe scripts\smoke_yolo.py "C:\path\to\your\image.jpg"`
+
+The first run may download the `yolo26n.pt` model weights. The pretrained model is a general-purpose detector, not a VISTA waste-specific model; its labels do not determine an item's material, recyclability, contamination, or condition.
 
 ## Current Status
 
-The project is in its initial setup stage. The source package structure and empty Python package marker files have been created. The computer-vision pipeline, model integration, assessments, impact calculations, API, and dashboard still need to be implemented and tested.
+The image validation component and YOLO detector interface have been implemented. Real YOLO inference has not yet been verified. Waste-specific classification, contamination and condition assessment, explainability, impact estimation, and the dashboard and API have not yet been verified as implemented.
 
 ## Responsible Estimates
 
