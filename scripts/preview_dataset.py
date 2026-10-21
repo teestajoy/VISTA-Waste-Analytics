@@ -10,7 +10,7 @@ DATASET_DIR = (
 )
 OUTPUT_PATH = Path("test-data") / "dataset_samples.jpg"
 
-CATEGORIES = ["metal", "trash", "textile"]
+CATEGORIES = ["plastic", "paper", "cardboard", "glass", "organic"]
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".bmp", ".webp"}
 SAMPLES_PER_CATEGORY = 5
 
