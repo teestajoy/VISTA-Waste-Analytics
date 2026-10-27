@@ -3,9 +3,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-import numpy as np
-
-from vista.detection.image_input import ImageInputError, validate_image
+from vista.detection.image_input import validate_image
 
 
 @dataclass(frozen=True)
@@ -73,32 +71,10 @@ class YoloObjectDetector:
         result = self._predict(image_path)
         return self._convert_result(result)
 
-    def detect_frame(self, frame: np.ndarray) -> list[Detection]:
-        """Detect objects in one in-memory OpenCV BGR frame (uint8 HWC array)."""
-        if not isinstance(frame, np.ndarray):
-            raise ImageInputError("Frame must be a NumPy array in BGR format.")
-        if frame.ndim != 3 or frame.shape[2] != 3:
-            raise ImageInputError("Frame must be a three-channel BGR image.")
-        if frame.shape[0] == 0 or frame.shape[1] == 0 or frame.size == 0:
-            raise ImageInputError("Frame must not be empty.")
-        if frame.dtype != np.uint8:
-            raise ImageInputError("Frame dtype must be uint8 for YOLO inference.")
-
-        result = self._predict_frame(frame)
-        return self._convert_result(result)
-
     def _predict(self, image_path: str | Path) -> Any:
         """Small inference boundary, kept separate for straightforward mocking."""
-        return self._predict_source(str(image_path))
-
-    def _predict_frame(self, frame: np.ndarray) -> Any:
-        """Run inference directly on a validated in-memory image frame."""
-        return self._predict_source(frame)
-
-    def _predict_source(self, source: Any) -> Any:
-        """Run model inference and select its first result, if one exists."""
         results = self._model.predict(
-            source=source,
+            source=str(image_path),
             conf=self.confidence_threshold,
             verbose=False,
         )

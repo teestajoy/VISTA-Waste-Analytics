@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>VISTA · Waste Intelligence</title><link rel="stylesheet" href="/static/style.css"></head>
+<body>
+<header><div class="brand"><span class="logo">◐</span><div><b>VISTA</b><small>Visual Intelligence for Smart Trash Analysis</small></div></div>
+<nav id="nav"><button data-p="overview" class="on">Overview</button><button data-p="analyze">Analyze</button><button data-p="explain">Explainability Lab</button>
+<button data-p="analytics">Analytics</button><button data-p="model">Model &amp; Transparency</button><button data-p="reports">Reports</button></nav>
+<div id="pill" class="pill">checking backend…</div></header>
+<div id="toast" class="toast" hidden></div>
+<main>
+<section id="p-overview" class="page on">
+ <div class="hero"><h1>Explainable dual-stream waste &amp; e-waste analysis</h1>
+ <p>Detect items with YOLOv8, route each one through a hierarchical <b>Municipal&nbsp;Waste / E-Waste</b> gate to a ResNet18 category head, then inspect contamination, condition, carbon-economic estimates and a real Grad-CAM explanation.</p>
+ <button class="primary" onclick="go('analyze')">Start analysis →</button></div>
+ <div class="grid3" id="ovStatus"></div>
+ <div class="card"><h3>Pipeline</h3><div class="flow"><span>Image / camera</span>→<span>YOLOv8 detect</span>→<span>Crop</span>→<span class="hl">Stream gate</span>→<span class="hl">Fine-grained ResNet18</span>→<span>Contamination · Condition</span>→<span>CO₂e · Value</span>→<span>Grad-CAM</span>→<span>JSON / CSV / Excel</span></div></div>
+ <div class="card" id="lastAnalysis"><h3>Last analysis</h3><p class="muted">No analysis yet.</p></div>
+</section>
+
+<section id="p-analyze" class="page">
+ <div class="cols">
+  <div class="col-main">
+   <div class="card"><div class="row"><div class="seg" id="modeSeg"><button class="on" data-m="upload">Upload image</button><button data-m="camera">Live camera</button></div>
+    <label class="muted">Detector threshold <input type="range" id="conf" min="0.05" max="0.9" step="0.05" value="0.25"><b id="confv">0.25</b></label></div>
+    <div id="upBox" class="drop"><input type="file" id="file" accept=".jpg,.jpeg,.png,.webp"><p>Drop an image here or choose a file (JPEG · PNG · WEBP, ≤ 10 MB)</p></div>
+    <div id="camBox" hidden><div class="row"><button id="camStart" class="primary">Start camera</button><button id="camCap" disabled>Capture</button><button id="camRetake" disabled>Retake / resume</button><button id="camStop" disabled>Stop</button></div>
+     <div class="stage"><video id="vid" playsinline muted></video><canvas id="vidOv"></canvas></div><p class="muted small">Live boxes are refreshed about every 2 s (not every frame). Press Capture to freeze a frame and select an object.</p></div>
+    <div id="stageWrap" hidden><div class="row"><label class="muted"><input type="checkbox" id="showBoxes" checked> show boxes</label><span id="detInfo" class="muted"></span><button id="clearImg" class="ghost">Remove image</button></div>
+     <div class="stage"><canvas id="stage"></canvas><div id="busy" class="busy" hidden>Running YOLOv8…</div></div>
+     <div id="detList" class="chips"></div></div>
+    <div id="noDet" class="notice warn" hidden></div>
+   </div>
+   <div class="card"><div class="row"><label>Estimated mass (kg, optional) <input type="number" id="mass" min="0" step="0.01" placeholder="category default"></label>
+     <button id="analyzeBtn" class="primary" disabled>Analyze selected object</button><button id="analyzeFull" disabled>Analyze full frame</button></div>
+     <p class="muted small">The detector shows boxes immediately. <b>Analyze</b> then runs the stream gate → fine-grained classifier → scorers → Grad-CAM on the selected crop. “Full frame” lets you analyse the whole image when no box fits (no box is invented).</p></div>
+  </div>
+  <div class="col-side" id="result"><div class="card"><h3>Analysis</h3><p class="muted">Select a detected object, then press Analyze.</p></div></div>
+ </div>
+ <div class="card" id="exportsCard"><h3>Reports &amp; exports (current analysis)</h3><div id="exportBtns" class="row"><span class="muted">Run an analysis to enable exports.</span></div></div>
+</section>
+
+<section id="p-explain" class="page"><div id="explainBody"><div class="card"><p class="muted">Run an analysis first (Analyze page).</p></div></div></section>
+
+<section id="p-analytics" class="page">
+ <div class="card filters"><label>Stream <select id="fStream"><option value="">all</option><option>MSW</option><option>E_WASTE</option></select></label>
+  <label>Category <select id="fCat"><option value="">all</option></select></label>
+  <label>Conf ≥ <input type="number" id="fMin" min="0" max="1" step="0.05" style="width:70px"></label><label>≤ <input type="number" id="fMax" min="0" max="1" step="0.05" style="width:70px"></label>
+  <label>From <input type="date" id="fFrom"></label><label>To <input type="date" id="fTo"></label>
+  <button id="fApply" class="primary">Apply</button><button id="fReset">Reset</button><button id="fCsv">Export filtered CSV</button></div>
+ <div id="kpis" class="kpis"></div><p id="basis" class="muted small"></p>
+ <div id="charts" class="grid2"></div>
+ <h2>Model evaluation</h2><div id="evalCharts" class="grid2"></div>
+ <h3>Records</h3><div id="recTable" class="card"></div>
+</section>
+
+<section id="p-model" class="page"><div id="modelBody"></div></section>
+<section id="p-reports" class="page"><div class="card"><div class="row"><label>Analysis <select id="repSel"></select></label><button id="repClear" class="ghost">Clear local history</button></div><div id="repBtns" class="row"></div></div>
+ <div class="card"><h3>Report preview (JSON)</h3><pre id="repPre">Select an analysis.</pre></div></section>
+</main>
+<script src="/static/plotly.min.js"></script><script src="/static/app.js"></script></body></html>

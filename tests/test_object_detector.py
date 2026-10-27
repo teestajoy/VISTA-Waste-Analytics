@@ -1,6 +1,5 @@
 from pathlib import Path
 
-import numpy as np
 import pytest
 from PIL import Image
 
@@ -148,67 +147,3 @@ def test_detector_rejects_invalid_image_before_inference(
         detector.detect(tmp_path / "missing.png")
 
     assert model.predict_calls == []
-
-
-def test_detector_detects_objects_directly_from_bgr_frame(detector_module):
-    frame = np.zeros((24, 32, 3), dtype=np.uint8)
-    model = FakeModel(
-        [
-            FakeResult(
-                FakeBoxes([[1.5, 2, 20, 18]], [2], [0.875]),
-                names={2: "bottle"},
-            )
-        ]
-    )
-    detector = detector_module.YoloObjectDetector(model=model)
-
-    detections = detector.detect_frame(frame)
-
-    assert detections == [
-        detector_module.Detection(
-            box=detector_module.BoundingBox(1.5, 2.0, 20.0, 18.0),
-            class_id=2,
-            class_label="bottle",
-            confidence=0.875,
-        )
-    ]
-    assert model.predict_calls == [
-        {"source": frame, "conf": 0.25, "verbose": False}
-    ]
-    assert model.predict_calls[0]["source"] is frame
-
-
-@pytest.mark.parametrize(
-    "frame",
-    [
-        np.empty((0, 32, 3), dtype=np.uint8),
-        np.empty((24, 0, 3), dtype=np.uint8),
-        np.zeros((24, 32), dtype=np.uint8),
-        np.zeros((24, 32, 1), dtype=np.uint8),
-        np.zeros((24, 32, 4), dtype=np.uint8),
-        np.zeros((24, 32, 3), dtype=np.float32),
-        "not an array",
-    ],
-)
-def test_detector_rejects_empty_or_malformed_frames_before_inference(
-    detector_module, frame
-):
-    model = FakeModel([])
-    detector = detector_module.YoloObjectDetector(model=model)
-
-    with pytest.raises(detector_module.ImageInputError):
-        detector.detect_frame(frame)
-
-    assert model.predict_calls == []
-
-
-def test_detector_propagates_frame_inference_errors(detector_module):
-    class FailingModel:
-        def predict(self, **kwargs):
-            raise RuntimeError("synthetic inference failure")
-
-    detector = detector_module.YoloObjectDetector(model=FailingModel())
-    frame = np.zeros((24, 32, 3), dtype=np.uint8)
-
-    with pytest.raises(RuntimeError, match="synthetic inference failure"):
-        detector.detect_frame(frame)

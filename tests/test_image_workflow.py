@@ -24,19 +24,6 @@ class FakeDetector:
         return self.detections
 
 
-class FakeClassifier:
-    def __init__(self, prediction=None, error=None):
-        self.prediction = prediction
-        self.error = error
-        self.calls = []
-
-    def predict(self, image):
-        self.calls.append(image.copy())
-        if self.error:
-            raise self.error
-        return self.prediction
-
-
 @pytest.fixture
 def synthetic_image(tmp_path):
     image_path = tmp_path / "sample.png"
@@ -126,56 +113,3 @@ def test_detect_and_crop_propagates_invalid_bounding_box_error(
 
     with pytest.raises(ValueError, match="positive width and height"):
         workflow.detect_and_crop(synthetic_image, detector)
-
-
-def test_classify_detections_pairs_rgb_crops_with_pilot_predictions(
-    synthetic_image, workflow_modules
-):
-    from vista.classification.paper_cardboard_classifier import PaperCardboardPrediction
-
-    workflow, object_detector = workflow_modules
-    detection = make_detection(object_detector, (1, 1, 4, 3), class_label="bottle")
-    image = Image.open(synthetic_image).convert("RGB")
-    prediction = PaperCardboardPrediction("paper", 0.82, 0.70)
-    classifier = FakeClassifier(prediction)
-
-    results = workflow.classify_detections(image, [detection], classifier)
-
-    assert len(results) == 1
-    assert results[0].detection is detection
-    assert results[0].crop.size == (3, 2)
-    assert results[0].prediction is prediction
-    assert results[0].error is None
-    assert classifier.calls[0].mode == "RGB"
-
-
-def test_classify_detections_handles_empty_and_invalid_crops(
-    synthetic_image, workflow_modules
-):
-    workflow, object_detector = workflow_modules
-    image = Image.open(synthetic_image).convert("RGB")
-    classifier = FakeClassifier()
-    invalid = make_detection(object_detector, (4, 1, 2, 3))
-
-    assert workflow.classify_detections(image, [], classifier) == []
-    result = workflow.classify_detections(image, [invalid], classifier)[0]
-
-    assert result.crop is None
-    assert result.prediction is None
-    assert "positive width and height" in result.error
-    assert classifier.calls == []
-
-
-def test_classify_detections_reports_classifier_inference_error(
-    synthetic_image, workflow_modules
-):
-    workflow, object_detector = workflow_modules
-    image = Image.open(synthetic_image).convert("RGB")
-    detection = make_detection(object_detector, (0, 0, 2, 2))
-    classifier = FakeClassifier(error=RuntimeError("model inference failed"))
-
-    result = workflow.classify_detections(image, [detection], classifier)[0]
-
-    assert result.crop.size == (2, 2)
-    assert result.prediction is None
-    assert result.error == "model inference failed"

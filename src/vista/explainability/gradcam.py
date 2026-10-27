@@ -1,135 +1,52 @@
-"""Grad-CAM explanations for compatible image classifiers.
-
-The heatmap indicates image regions that influenced a selected model logit. It
-does not establish that the model's classification is correct.
-"""
-
-from __future__ import annotations
-
-from dataclasses import dataclass
-import math
+"""Grad-CAM for a convolutional classifier (e.g. ResNet18 layer4)."""
 
 import cv2
 import numpy as np
 import torch
-import torch.nn.functional as F
 from PIL import Image
-from torch import nn
 
 
-class GradCAMError(RuntimeError):
-    """Raised when Grad-CAM cannot be computed for the supplied model or image."""
+class GradCAM:
+    def __init__(self, model: torch.nn.Module, target_layer: torch.nn.Module) -> None:
+        self.model = model.eval()
+        self._acts: torch.Tensor | None = None
+        self._grads: torch.Tensor | None = None
+        target_layer.register_forward_hook(self._save_acts)
+        target_layer.register_full_backward_hook(self._save_grads)
+
+    def _save_acts(self, _m, _i, out):
+        self._acts = out.detach()
+
+    def _save_grads(self, _m, _gi, go):
+        self._grads = go[0].detach()
+
+    def heatmap(self, batch: torch.Tensor, class_idx: int | None = None) -> np.ndarray:
+        """Return a (H, W) map in 0..1 for the chosen (or top) class of a 1-image batch."""
+        self.model.zero_grad()
+        logits = self.model(batch.requires_grad_(True))
+        idx = int(logits.argmax(1)) if class_idx is None else class_idx
+        logits[0, idx].backward()
+        weights = self._grads.mean(dim=(2, 3), keepdim=True)  # alpha_k
+        cam = torch.relu((weights * self._acts).sum(dim=1))[0].numpy()
+        cam -= cam.min()
+        if cam.max() > 0:
+            cam /= cam.max()
+        return cv2.resize(cam, (batch.shape[3], batch.shape[2]))
 
 
-@dataclass(frozen=True)
-class GradCAMResult:
-    """Normalized heatmap and its RGB overlay for a model output class."""
+def overlay(crop: Image.Image, cam: np.ndarray, alpha: float = 0.55) -> Image.Image:
+    """Blend a 0..1 heat-map onto the crop (turbo colour map)."""
+    rgb = np.asarray(crop.convert("RGB"))
+    cam = cv2.resize(cam, (rgb.shape[1], rgb.shape[0]))
+    heat = cv2.cvtColor(cv2.applyColorMap((cam * 255).astype(np.uint8), cv2.COLORMAP_TURBO), cv2.COLOR_BGR2RGB)
+    mix = (rgb * (1 - alpha) + heat * alpha).clip(0, 255).astype(np.uint8)
+    return Image.fromarray(mix)
 
-    target_class_index: int
-    target_class: str
-    heatmap: np.ndarray
-    overlay: Image.Image
 
-
-def generate_gradcam(classifier, image: Image.Image, *, alpha: float = 0.42) -> GradCAMResult:
-    """Generate Grad-CAM using a classifier's exact transform and final ResNet block.
-
-    The classifier is expected to expose ``model``, ``transform``, ``device``
-    and ``class_names``. The project's provisional category classifier provides
-    those attributes and uses the same RGB resize/normalization as training.
-    Hooks and every module's training flag are restored even when computation
-    fails.
-    """
-    if not isinstance(image, Image.Image) or image.width <= 0 or image.height <= 0:
-        raise ValueError("Grad-CAM requires a non-empty Pillow image.")
-    if (
-        isinstance(alpha, bool)
-        or not isinstance(alpha, (int, float))
-        or not math.isfinite(alpha)
-        or not 0 <= alpha <= 1
-    ):
-        raise ValueError("alpha must be a number between 0 and 1.")
-
-    model = getattr(classifier, "model", None)
-    transform = getattr(classifier, "transform", None)
-    device = getattr(classifier, "device", None)
-    class_names = tuple(getattr(classifier, "class_names", ()))
-    target_layer = getattr(model, "layer4", None)
-    if not isinstance(model, nn.Module) or not isinstance(target_layer, nn.Module):
-        raise GradCAMError("Grad-CAM supports models with a final convolutional layer4 block, such as ResNet18.")
-    if not callable(transform) or device is None or not class_names:
-        raise GradCAMError("The classifier must provide its trained transform, device, and class names.")
-
-    try:
-        input_tensor = transform(image.convert("RGB")).unsqueeze(0).to(device)
-    except Exception as error:
-        raise GradCAMError(f"Could not preprocess the image for Grad-CAM: {error}") from error
-
-    activations: list[torch.Tensor] = []
-    gradients: list[torch.Tensor] = []
-
-    def capture_activation(_module, _inputs, output):
-        if not isinstance(output, torch.Tensor) or output.ndim != 4:
-            raise GradCAMError("The model's layer4 output must be a four-dimensional feature map.")
-        activations.append(output)
-        output.register_hook(lambda gradient: gradients.append(gradient))
-
-    module_states = {module: module.training for module in model.modules()}
-    handle = target_layer.register_forward_hook(capture_activation)
-    try:
-        model.eval()
-        model.zero_grad(set_to_none=True)
-        with torch.enable_grad():
-            logits = model(input_tensor)
-            if (
-                not isinstance(logits, torch.Tensor)
-                or logits.ndim != 2
-                or logits.shape[0] != 1
-                or logits.shape[1] != len(class_names)
-            ):
-                raise GradCAMError("The classifier must return one batch of class logits.")
-            target_index = int(logits[0].argmax().item())
-            if target_index >= len(class_names):
-                raise GradCAMError("The model output index is missing from the saved class mapping.")
-            logits[0, target_index].backward()
-
-        if not activations or not gradients:
-            raise GradCAMError("Gradients were not captured from the model's layer4 block.")
-        activation = activations[-1].detach()
-        gradient = gradients[-1].detach()
-        weights = gradient.mean(dim=(2, 3), keepdim=True)
-        cam = torch.relu((weights * activation).sum(dim=1, keepdim=True))
-        cam = F.interpolate(
-            cam, size=(image.height, image.width), mode="bilinear", align_corners=False
-        )[0, 0]
-        minimum = cam.min()
-        maximum = cam.max()
-        if not torch.isfinite(cam).all():
-            raise GradCAMError("The model produced a non-finite Grad-CAM heatmap.")
-        if float((maximum - minimum).item()) > 1e-12:
-            cam = (cam - minimum) / (maximum - minimum)
-        else:
-            cam = torch.zeros_like(cam)
-        heatmap = cam.cpu().numpy().astype(np.float32, copy=False)
-        color_bgr = cv2.applyColorMap(
-            np.clip(heatmap * 255, 0, 255).astype(np.uint8), cv2.COLORMAP_JET
-        )
-        color_rgb = cv2.cvtColor(color_bgr, cv2.COLOR_BGR2RGB)
-        original = image.convert("RGB")
-        color_image = Image.fromarray(color_rgb, mode="RGB")
-        overlay = Image.blend(original, color_image, float(alpha))
-        return GradCAMResult(
-            target_class_index=target_index,
-            target_class=str(class_names[target_index]),
-            heatmap=heatmap,
-            overlay=overlay,
-        )
-    except GradCAMError:
-        raise
-    except Exception as error:
-        raise GradCAMError(f"Grad-CAM computation failed: {error}") from error
-    finally:
-        handle.remove()
-        model.zero_grad(set_to_none=True)
-        for module, was_training in module_states.items():
-            module.training = was_training
+def top_region(cam: np.ndarray, thresh: float = 0.6) -> tuple[float, float, float, float] | None:
+    """Bounding box (x0, y0, x1, y1 as 0..1 fractions) of the strongest activation area."""
+    ys, xs = np.where(cam >= thresh)
+    if xs.size == 0:
+        return None
+    h, w = cam.shape
+    return (xs.min() / w, ys.min() / h, (xs.max() + 1) / w, (ys.max() + 1) / h)

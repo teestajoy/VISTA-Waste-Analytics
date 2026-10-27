@@ -8,25 +8,12 @@ venv/
 venv-py314-backup/
 .env
 *.env
-.env.*
-.streamlit/secrets.toml
-secrets.toml
-credentials*.json
-*.pem
-*.key
-*.p12
-*.pfx
 
 # Jupyter
 .ipynb_checkpoints/
 
 # Datasets
 data/
-!data/
-data/*
-!data/processed/
-data/processed/*
-!data/processed/mobile_phone_review_batch_v1.csv
 test-data/
 
 # Model weights
