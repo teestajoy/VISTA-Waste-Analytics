@@ -3,3 +3,4 @@ Pillow>=10,<13
 pytest>=8,<10
 pydantic>=2.7,<3
 ultralytics>=8.4,<9
+streamlit>=1.40,<2

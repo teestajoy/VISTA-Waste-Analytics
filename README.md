@@ -64,9 +64,17 @@ After installing the project requirements and the selected PyTorch/torchvision b
 
 The first run may download the `yolo26n.pt` model weights. The pretrained model is a general-purpose detector, not a VISTA waste-specific model; its labels do not determine an item's material, recyclability, contamination, or condition.
 
+## Streamlit Dashboard Prototype
+
+Start the dashboard from the repository root with the project environment:
+
+`.\venv\Scripts\python.exe -m streamlit run dashboard\app.py`
+
+The prototype accepts an uploaded image or a webcam snapshot and displays generic YOLO detections. The primary MSW/e-waste family result remains **Uncertain**: no reviewed E-waste training set or verified family checkpoint is available. The paper/cardboard ResNet18 is a separate experimental supporting pilot, not the family classifier. Its recorded test accuracy was 80% on only five test images (two paper and three cardboard), so the result is highly uncertain and is not a production performance estimate. Grad-CAM explainability, contamination and recyclability analysis, and CO2e or economic estimates are not available yet. See `docs/waste_family_data_readiness.md` for the recorded dataset evidence and next data requirement.
+
 ## Current Status
 
-The image validation component and YOLO detector interface have been implemented. Real YOLO inference has not yet been verified. Waste-specific classification, contamination and condition assessment, explainability, impact estimation, and the dashboard and API have not yet been verified as implemented.
+The image validation component and YOLO detector interface have been implemented. The dashboard currently separates general-purpose YOLO detections, an experimental paper/cardboard pilot, and a fail-closed MSW/e-waste interface that reports Uncertain. No real MSW/e-waste classifier has been trained or verified. Contamination and condition assessment, explainability, impact estimation, and the API remain unavailable.
 
 ## Responsible Estimates
 

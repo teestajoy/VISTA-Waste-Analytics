@@ -1,0 +1,28 @@
+{
+  "class_names": [
+    "paper",
+    "cardboard",
+    "plastic",
+    "glass",
+    "organic",
+    "battery"
+  ],
+  "class_to_index": {
+    "paper": 0,
+    "cardboard": 1,
+    "plastic": 2,
+    "glass": 3,
+    "organic": 4,
+    "battery": 5
+  },
+  "category_to_family": {
+    "paper": "MSW",
+    "cardboard": "MSW",
+    "plastic": "MSW",
+    "glass": "MSW",
+    "organic": "MSW",
+    "battery": "E_WASTE"
+  },
+  "label_provenance": "folder_derived_provisional",
+  "verified_ground_truth": false
+}

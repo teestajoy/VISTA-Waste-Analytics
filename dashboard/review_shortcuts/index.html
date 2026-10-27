@@ -1,0 +1,30 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><style>body{font:13px sans-serif;color:#52605b;margin:4px}kbd{border:1px solid #8a9691;border-radius:4px;padding:2px 5px;background:#f4f7f5}</style></head>
+<body><span id="hint">Keyboard shortcuts active: ←/→ navigate · 1–2 family / 1–6 category · H hold · S skip</span>
+<script>
+(() => {
+  let sequence = 0;
+  const send = (key) => window.parent.postMessage({
+    isStreamlitMessage: true,
+    type: "streamlit:setComponentValue",
+    value: {key, id: `${Date.now()}-${++sequence}`}
+  }, "*");
+  const handle = (event) => {
+    if (event.ctrlKey || event.altKey || event.metaKey) return;
+    const target = event.target;
+    if (target && (target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName))) return;
+    const key = event.key.length === 1 ? event.key.toLowerCase() : event.key;
+    if (["1","2","3","4","5","6","h","s","ArrowLeft","ArrowRight"].includes(key)) send(key);
+  };
+  try { window.parent.document.addEventListener("keydown", handle); }
+  catch (_) { window.addEventListener("keydown", handle); }
+  window.parent.postMessage({isStreamlitMessage: true, type: "streamlit:componentReady", apiVersion: 1}, "*");
+  window.addEventListener("message", (event) => {
+    if (event.data && event.data.type === "streamlit:render") {
+      window.parent.postMessage({isStreamlitMessage: true, type: "streamlit:setFrameHeight", height: 25}, "*");
+    }
+  });
+})();
+</script></body>
+</html>

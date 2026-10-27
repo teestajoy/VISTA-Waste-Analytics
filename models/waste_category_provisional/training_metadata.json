@@ -1,0 +1,109 @@
+{
+  "model_status": "PROVISIONAL",
+  "architecture": "torchvision ResNet18",
+  "pretrained_weights": "C:\\Users\\teest\\.cache\\torch\\hub\\checkpoints\\resnet18-f37072fd.pth",
+  "class_names": [
+    "paper",
+    "cardboard",
+    "plastic",
+    "glass",
+    "organic",
+    "battery"
+  ],
+  "class_to_index": {
+    "paper": 0,
+    "cardboard": 1,
+    "plastic": 2,
+    "glass": 3,
+    "organic": 4,
+    "battery": 5
+  },
+  "category_to_family": {
+    "paper": "MSW",
+    "cardboard": "MSW",
+    "plastic": "MSW",
+    "glass": "MSW",
+    "organic": "MSW",
+    "battery": "E_WASTE"
+  },
+  "label_provenance": "folder_derived_provisional",
+  "verified_ground_truth": false,
+  "label_provenance_note": "Category and family labels were derived from source-folder names and are not verified ground truth.",
+  "human_review_decisions_used_as_labels": false,
+  "source_manifest": "C:\\Users\\teest\\Documents\\VISTA-Waste-Analytics\\data\\processed\\family_provisional_split_manifest.csv",
+  "source_manifest_sha256": "02aa45c9f1ea405fd0a2b9bc548e0db6d9a5dbb42bf1c4819e65c2248db54eda",
+  "split_counts_by_category": {
+    "train": {
+      "paper": 715,
+      "cardboard": 705,
+      "plastic": 693,
+      "glass": 689,
+      "organic": 698,
+      "battery": 700
+    },
+    "validation": {
+      "paper": 139,
+      "cardboard": 150,
+      "plastic": 152,
+      "glass": 152,
+      "organic": 157,
+      "battery": 150
+    },
+    "test": {
+      "paper": 146,
+      "cardboard": 145,
+      "plastic": 155,
+      "glass": 159,
+      "organic": 145,
+      "battery": 150
+    }
+  },
+  "split_counts_by_family": {
+    "train": {
+      "E_WASTE": 700,
+      "MSW": 3500
+    },
+    "validation": {
+      "E_WASTE": 150,
+      "MSW": 750
+    },
+    "test": {
+      "E_WASTE": 150,
+      "MSW": 750
+    }
+  },
+  "seed": 42,
+  "epochs": 8,
+  "batch_size": 16,
+  "learning_rate": 0.001,
+  "backbone_frozen": true,
+  "class_weighted_loss": true,
+  "image_size": 224,
+  "preprocessing": {
+    "color_mode": "RGB",
+    "resize": [
+      224,
+      224
+    ],
+    "tensor": "ToTensor",
+    "normalize_mean": [
+      0.485,
+      0.456,
+      0.406
+    ],
+    "normalize_std": [
+      0.229,
+      0.224,
+      0.225
+    ]
+  },
+  "confidence_threshold": 0.7,
+  "confidence_threshold_note": "Uncalibrated demonstration threshold; not a verified probability cutoff.",
+  "device": "cuda",
+  "torch_version": "2.14.1+cu126",
+  "torchvision_version": "0.29.1+cu126",
+  "numpy_version": "2.5.4",
+  "best_epoch": 6,
+  "test_set_used_only_after_validation_model_selection": true,
+  "warning": "Held-out metrics measure agreement with folder-derived labels only; real-world category performance is not established."
+}

@@ -1,0 +1,20 @@
+{
+  "class_names": [
+    "MSW",
+    "E_WASTE"
+  ],
+  "class_to_index": {
+    "MSW": 0,
+    "E_WASTE": 1
+  },
+  "source_folder_mapping": {
+    "battery": "E_WASTE",
+    "cardboard": "MSW",
+    "glass": "MSW",
+    "organic": "MSW",
+    "paper": "MSW",
+    "plastic": "MSW"
+  },
+  "label_provenance": "folder_derived_provisional",
+  "verified_ground_truth": false
+}

@@ -1,0 +1,116 @@
+{
+  "created_utc": "2026-10-25T07:38:35.385471+00:00",
+  "model_status": "PROVISIONAL",
+  "architecture": "torchvision ResNet18",
+  "pretrained_weights": "C:\\Users\\teest\\.cache\\torch\\hub\\checkpoints\\resnet18-f37072fd.pth",
+  "class_names": [
+    "MSW",
+    "E_WASTE"
+  ],
+  "class_to_index": {
+    "MSW": 0,
+    "E_WASTE": 1
+  },
+  "source_folder_mapping": {
+    "battery": "E_WASTE",
+    "cardboard": "MSW",
+    "glass": "MSW",
+    "organic": "MSW",
+    "paper": "MSW",
+    "plastic": "MSW"
+  },
+  "label_provenance": "folder_derived_provisional",
+  "verified_ground_truth": false,
+  "manifest_path": "C:\\Users\\teest\\Documents\\VISTA-Waste-Analytics\\data\\processed\\family_provisional_split_manifest.csv",
+  "manifest_sha256": "02aa45c9f1ea405fd0a2b9bc548e0db6d9a5dbb42bf1c4819e65c2248db54eda",
+  "dataset_root": "C:\\Users\\teest\\Downloads\\Waste_classification_dataset\\final_merged_dataset",
+  "label_provenance_note": "All binary labels are provisional source-folder mappings, not verified ground truth.",
+  "human_review_decisions_used_as_labels": false,
+  "human_hold_exclude_or_conflicting_decisions_respected": true,
+  "split_counts_by_family": {
+    "train": {
+      "MSW": 3500,
+      "E_WASTE": 700
+    },
+    "validation": {
+      "MSW": 750,
+      "E_WASTE": 150
+    },
+    "test": {
+      "MSW": 750,
+      "E_WASTE": 150
+    }
+  },
+  "split_counts_by_source_category": {
+    "battery": {
+      "test": 150,
+      "train": 700,
+      "validation": 150
+    },
+    "cardboard": {
+      "test": 145,
+      "train": 705,
+      "validation": 150
+    },
+    "glass": {
+      "test": 159,
+      "train": 689,
+      "validation": 152
+    },
+    "organic": {
+      "test": 145,
+      "train": 698,
+      "validation": 157
+    },
+    "paper": {
+      "test": 146,
+      "train": 715,
+      "validation": 139
+    },
+    "plastic": {
+      "test": 155,
+      "train": 693,
+      "validation": 152
+    }
+  },
+  "excluded_row_counts_by_reason": {
+    "outside per-folder sample cap": 11443,
+    "same-folder exact duplicate copy": 2058,
+    "cross-folder exact-hash conflict": 10,
+    "source folder not mapped": 15657
+  },
+  "seed": 42,
+  "epochs": 8,
+  "batch_size": 16,
+  "learning_rate": 0.001,
+  "backbone_frozen": true,
+  "class_weighted_loss": true,
+  "image_size": 224,
+  "preprocessing": {
+    "color_mode": "RGB",
+    "resize": [
+      224,
+      224
+    ],
+    "tensor": "ToTensor",
+    "normalize_mean": [
+      0.485,
+      0.456,
+      0.406
+    ],
+    "normalize_std": [
+      0.229,
+      0.224,
+      0.225
+    ]
+  },
+  "confidence_threshold": 0.7,
+  "confidence_threshold_note": "Provisional demonstration threshold; not calibrated.",
+  "device": "cuda",
+  "torch_version": "2.14.1+cu126",
+  "torchvision_version": "0.29.1+cu126",
+  "numpy_version": "2.5.4",
+  "test_set_used_only_after_validation_model_selection": true,
+  "best_epoch": 6,
+  "warning": "Folder-derived evaluation is provisional and cannot establish family-label accuracy or production performance."
+}

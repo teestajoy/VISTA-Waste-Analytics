@@ -1,0 +1,42 @@
+{
+  "created_utc": "2026-10-22T21:21:54.963758+00:00",
+  "architecture": "torchvision ResNet18",
+  "pretrained_weights": "C:\\Users\\teest\\.cache\\torch\\hub\\checkpoints\\resnet18-f37072fd.pth",
+  "class_names": [
+    "paper",
+    "cardboard"
+  ],
+  "class_to_index": {
+    "paper": 0,
+    "cardboard": 1
+  },
+  "manifest_path": "C:\\Users\\teest\\Documents\\VISTA-Waste-Analytics\\data\\processed\\paper_cardboard_pilot_split_manifest.csv",
+  "manifest_sha256": "1659860013bb71af756f709623c5e8f50afac56c12e3d2cdd00ebc8b889ce6b7",
+  "dataset_root": "C:\\Users\\teest\\Downloads\\Waste_classification_dataset\\final_merged_dataset",
+  "split_counts": {
+    "train": {
+      "paper": 12,
+      "cardboard": 13
+    },
+    "validation": {
+      "paper": 3,
+      "cardboard": 3
+    },
+    "test": {
+      "paper": 2,
+      "cardboard": 3
+    }
+  },
+  "seed": 42,
+  "epochs": 20,
+  "batch_size": 4,
+  "learning_rate": 0.001,
+  "image_size": 224,
+  "device": "cuda",
+  "torch_version": "2.14.1+cu126",
+  "torchvision_version": "0.29.1+cu126",
+  "numpy_version": "2.5.4",
+  "small_dataset_warning": "36 reviewed canonical images; metrics are highly uncertain.",
+  "test_set_used_only_after_validation_model_selection": true,
+  "best_epoch": 9
+}

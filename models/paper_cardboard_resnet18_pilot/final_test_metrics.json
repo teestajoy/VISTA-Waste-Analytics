@@ -1,0 +1,29 @@
+{
+  "loss": 0.4384143382310867,
+  "accuracy": 0.8,
+  "macro_f1": 0.8,
+  "per_class": {
+    "paper": {
+      "precision": 0.6666666666666666,
+      "recall": 1.0,
+      "f1": 0.8,
+      "support": 2
+    },
+    "cardboard": {
+      "precision": 1.0,
+      "recall": 0.6666666666666666,
+      "f1": 0.8,
+      "support": 3
+    }
+  },
+  "confusion_matrix": [
+    [
+      2,
+      0
+    ],
+    [
+      1,
+      2
+    ]
+  ]
+}
